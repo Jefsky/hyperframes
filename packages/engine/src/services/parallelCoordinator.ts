@@ -64,8 +64,23 @@ export interface WorkerSizingConfig extends Partial<
 
 const MEMORY_PER_WORKER_MB = 256;
 const MIN_WORKERS = 1;
-const ABSOLUTE_MAX_WORKERS = 10;
-const DEFAULT_SAFE_MAX_WORKERS = 6;
+// Hard ceiling on explicit `--workers N` requests. Above this, the cost of
+// CDP-protocol dispatch through Node's main event loop and OS scheduling
+// noise overwhelms any further parallelism. Bumped from 10 → 24 in hf#732
+// follow-up so high-core hosts (32-96+ cores) can actually surface the
+// hardware to renders that are CPU-bound on DOM capture.
+const ABSOLUTE_MAX_WORKERS = 24;
+// `auto` concurrency picks this many workers as the upper bound. Bumped
+// from a hardcoded 6 → CPU-scaled value (floor(cpuCount/8), floor at 6,
+// ceiling at 16) in hf#732 follow-up. Rationale: the prior fixed cap of 6
+// left ~90 cores idle on the validation host and forced users to pass
+// `--workers N` to opt in. Now `auto` matches what a thoughtful operator
+// would pick by hand. The /8 divisor leaves headroom for each Chrome
+// worker's SwiftShader compositor + the shader-blend thread pool, both of
+// which are themselves CPU-heavy.
+function defaultSafeMaxWorkers(): number {
+  return Math.max(6, Math.min(16, Math.floor(cpus().length / 8)));
+}
 const MIN_FRAMES_PER_WORKER = 30;
 
 export function calculateOptimalWorkers(
@@ -79,7 +94,7 @@ export function calculateOptimalWorkers(
     if (concurrency !== "auto") {
       return Math.max(MIN_WORKERS, Math.min(ABSOLUTE_MAX_WORKERS, Math.floor(concurrency)));
     }
-    return DEFAULT_SAFE_MAX_WORKERS;
+    return defaultSafeMaxWorkers();
   })();
   const effectiveCoresPerWorker = config?.coresPerWorker ?? DEFAULT_CONFIG.coresPerWorker;
   const effectiveMinParallelFrames = config?.minParallelFrames ?? DEFAULT_CONFIG.minParallelFrames;
