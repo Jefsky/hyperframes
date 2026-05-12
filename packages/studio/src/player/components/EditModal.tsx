@@ -2,18 +2,30 @@ import { useState, useCallback, useMemo, useRef } from "react";
 import { useMountEffect } from "../../hooks/useMountEffect";
 import { usePlayerStore } from "../store/playerStore";
 import { formatTime } from "../lib/time";
-import { buildPromptCopyText, buildTimelineAgentPrompt } from "./timelineEditing";
+import {
+  buildPromptCopyText,
+  buildTimelineAgentPrompt,
+  filterTimelinePromptElementsForRange,
+} from "./timelineEditing";
 import { copyTextToClipboard } from "../../utils/clipboard";
 
 interface EditPopoverProps {
   rangeStart: number;
   rangeEnd: number;
+  track: number | null;
   anchorX: number;
   anchorY: number;
   onClose: () => void;
 }
 
-export function EditPopover({ rangeStart, rangeEnd, anchorX, anchorY, onClose }: EditPopoverProps) {
+export function EditPopover({
+  rangeStart,
+  rangeEnd,
+  track,
+  anchorX,
+  anchorY,
+  onClose,
+}: EditPopoverProps) {
   const elements = usePlayerStore((s) => s.elements);
   const [prompt, setPrompt] = useState("");
   const [copiedAgentPrompt, setCopiedAgentPrompt] = useState(false);
@@ -25,11 +37,8 @@ export function EditPopover({ rangeStart, rangeEnd, anchorX, anchorY, onClose }:
   const end = Math.max(rangeStart, rangeEnd);
 
   const elementsInRange = useMemo(() => {
-    return elements.filter((el) => {
-      const elEnd = el.start + el.duration;
-      return el.start < end && elEnd > start;
-    });
-  }, [elements, start, end]);
+    return filterTimelinePromptElementsForRange(elements, { start, end, track });
+  }, [elements, start, end, track]);
 
   useMountEffect(() => {
     setTimeout(() => textareaRef.current?.focus(), 50);

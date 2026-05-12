@@ -180,6 +180,7 @@ export type BlockedTimelineEditIntent = "move" | "resize-start" | "resize-end";
 export interface TimelineRangeSelection {
   start: number;
   end: number;
+  track: number | null;
   anchorX: number;
   anchorY: number;
 }
@@ -272,16 +273,31 @@ export function resolveBlockedTimelineEditIntent(input: {
 }
 
 export function buildClipRangeSelection(
-  clip: { start: number; duration: number },
+  clip: { start: number; duration: number; track?: number },
   anchor: { anchorX: number; anchorY: number },
 ): TimelineRangeSelection {
   return {
     start: clip.start,
     end: clip.start + clip.duration,
+    track: clip.track ?? null,
     anchorX: anchor.anchorX,
     anchorY: anchor.anchorY,
   };
 }
+
+export function filterTimelinePromptElementsForRange(
+  elements: TimelinePromptElement[],
+  selection: Pick<TimelineRangeSelection, "start" | "end" | "track">,
+): TimelinePromptElement[] {
+  const start = Math.min(selection.start, selection.end);
+  const end = Math.max(selection.start, selection.end);
+  return elements.filter((el) => {
+    if (selection.track != null && el.track !== selection.track) return false;
+    const elEnd = el.start + el.duration;
+    return el.start < end && elEnd > start;
+  });
+}
+
 export function buildTimelineAgentPrompt({
   rangeStart,
   rangeEnd,

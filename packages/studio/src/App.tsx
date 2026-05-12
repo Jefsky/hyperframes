@@ -38,6 +38,7 @@ import { StudioProvider, type StudioContextValue } from "./contexts/StudioContex
 import { PanelLayoutProvider } from "./contexts/PanelLayoutContext";
 import { FileManagerProvider } from "./contexts/FileManagerContext";
 import { DomEditProvider } from "./contexts/DomEditContext";
+import { readStudioUiPreferences, writeStudioUiPreferences } from "./utils/studioUiPreferences";
 
 export function StudioApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -100,8 +101,18 @@ export function StudioApp() {
     window.setTimeout(() => setPreviewDocumentVersion((v) => v + 1), 300);
   }, []);
 
-  const [timelineVisible, setTimelineVisible] = useState(true);
-  const toggleTimelineVisibility = useCallback(() => setTimelineVisible((v) => !v), []);
+  const [timelineVisible, setTimelineVisible] = useState(
+    () => readStudioUiPreferences().timelineVisible ?? true,
+  );
+  const toggleTimelineVisibility = useCallback(
+    () =>
+      setTimelineVisible((visible) => {
+        const next = !visible;
+        writeStudioUiPreferences({ timelineVisible: next });
+        return next;
+      }),
+    [],
+  );
   const [appToast, setAppToast] = useState<AppToast | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = useCallback((message: string, tone: AppToast["tone"] = "error") => {

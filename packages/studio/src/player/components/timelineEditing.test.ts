@@ -4,6 +4,7 @@ import {
   buildPromptCopyText,
   buildTimelineElementAgentPrompt,
   buildTimelineAgentPrompt,
+  filterTimelinePromptElementsForRange,
   buildTrackZIndexMap,
   canOffsetTrimClipStart,
   getTimelineEditCapabilities,
@@ -434,15 +435,48 @@ describe("resolveBlockedTimelineEditIntent", () => {
 describe("buildClipRangeSelection", () => {
   it("anchors the full clip range at the click position", () => {
     expect(
-      buildClipRangeSelection({ start: 1.25, duration: 3.5 }, { anchorX: 320, anchorY: 180 }),
+      buildClipRangeSelection(
+        { start: 1.25, duration: 3.5, track: 2 },
+        { anchorX: 320, anchorY: 180 },
+      ),
     ).toEqual({
       start: 1.25,
       end: 4.75,
+      track: 2,
       anchorX: 320,
       anchorY: 180,
     });
   });
 });
+
+describe("filterTimelinePromptElementsForRange", () => {
+  const elements: TimelinePromptElement[] = [
+    { id: "title", tag: "div", start: 0, duration: 2, track: 0 },
+    { id: "logo", tag: "img", start: 0.5, duration: 2, track: 1 },
+    { id: "music", tag: "audio", start: 0, duration: 6, track: 2 },
+  ];
+
+  it("keeps range selection constrained to the selected track", () => {
+    expect(
+      filterTimelinePromptElementsForRange(elements, {
+        start: 0,
+        end: 2,
+        track: 1,
+      }).map((element) => element.id),
+    ).toEqual(["logo"]);
+  });
+
+  it("keeps the previous all-track behavior when no track is selected", () => {
+    expect(
+      filterTimelinePromptElementsForRange(elements, {
+        start: 0,
+        end: 2,
+        track: null,
+      }).map((element) => element.id),
+    ).toEqual(["title", "logo", "music"]);
+  });
+});
+
 describe("resolveTimelineAutoScroll", () => {
   it("does not scroll when the pointer stays away from the edges", () => {
     expect(

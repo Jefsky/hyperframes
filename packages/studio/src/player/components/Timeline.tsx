@@ -525,6 +525,18 @@ export const Timeline = memo(function Timeline({
     return [...trackOrder, draggedClip.previewTrack].sort((a, b) => a - b);
   }, [draggedClip, trackOrder]);
   const totalH = getTimelineCanvasHeight(displayTrackOrder.length);
+  const getPointerTrack = useCallback(
+    (clientY: number): number | null => {
+      const scroll = scrollRef.current;
+      const rect = scroll?.getBoundingClientRect();
+      if (!scroll || !rect) return null;
+      const y = clientY - rect.top + scroll.scrollTop - RULER_H;
+      if (y < 0) return null;
+      const rowIndex = Math.floor(y / TRACK_H);
+      return displayTrackOrder[rowIndex] ?? null;
+    },
+    [displayTrackOrder],
+  );
   const selectedElement = useMemo(
     () => elements.find((element) => (element.key ?? element.id) === selectedElementId) ?? null,
     [elements, selectedElementId],
@@ -966,7 +978,13 @@ export const Timeline = memo(function Timeline({
           const x = e.clientX - rect.left + (scrollRef.current?.scrollLeft ?? 0) - GUTTER;
           const time = Math.max(0, x / pps);
           rangeAnchorTime.current = time;
-          setRangeSelection({ start: time, end: time, anchorX: e.clientX, anchorY: e.clientY });
+          setRangeSelection({
+            start: time,
+            end: time,
+            track: getPointerTrack(e.clientY),
+            anchorX: e.clientX,
+            anchorY: e.clientY,
+          });
         }
         return;
       }
@@ -981,7 +999,7 @@ export const Timeline = memo(function Timeline({
       setShowPopover(false);
       seekFromX(e.clientX);
     },
-    [seekFromX, pps],
+    [seekFromX, pps, getPointerTrack],
   );
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -1633,8 +1651,12 @@ export const Timeline = memo(function Timeline({
               style={{
                 left: GUTTER + Math.min(rangeSelection.start, rangeSelection.end) * pps,
                 width: Math.abs(rangeSelection.end - rangeSelection.start) * pps,
-                top: RULER_H,
-                bottom: 0,
+                top:
+                  rangeSelection.track == null
+                    ? RULER_H
+                    : RULER_H +
+                      Math.max(0, displayTrackOrder.indexOf(rangeSelection.track)) * TRACK_H,
+                height: rangeSelection.track == null ? totalH - RULER_H : TRACK_H,
                 backgroundColor: "rgba(59, 130, 246, 0.12)",
                 borderLeft: "1px solid rgba(59, 130, 246, 0.4)",
                 borderRight: "1px solid rgba(59, 130, 246, 0.4)",
@@ -1706,6 +1728,7 @@ export const Timeline = memo(function Timeline({
         <EditPopover
           rangeStart={rangeSelection.start}
           rangeEnd={rangeSelection.end}
+          track={rangeSelection.track}
           anchorX={rangeSelection.anchorX}
           anchorY={rangeSelection.anchorY}
           onClose={() => {

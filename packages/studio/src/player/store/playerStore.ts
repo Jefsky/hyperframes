@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { readStudioUiPreferences, writeStudioUiPreferences } from "../../utils/studioUiPreferences";
 
 export interface TimelineElement {
   id: string;
@@ -73,6 +74,11 @@ export const liveTime = {
   },
 };
 
+function sanitizePlaybackRate(rate: number): number {
+  if (!Number.isFinite(rate) || rate <= 0) return 1;
+  return Math.min(16, Math.max(0.1, rate));
+}
+
 export const usePlayerStore = create<PlayerState>((set) => ({
   isPlaying: false,
   currentTime: 0,
@@ -80,13 +86,17 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   timelineReady: false,
   elements: [],
   selectedElementId: null,
-  playbackRate: 1,
+  playbackRate: sanitizePlaybackRate(readStudioUiPreferences().playbackRate ?? 1),
   loopEnabled: false,
   zoomMode: "fit",
   manualZoomPercent: 100,
 
   setIsPlaying: (playing) => set({ isPlaying: playing }),
-  setPlaybackRate: (rate) => set({ playbackRate: rate }),
+  setPlaybackRate: (rate) => {
+    const next = sanitizePlaybackRate(rate);
+    writeStudioUiPreferences({ playbackRate: next });
+    set({ playbackRate: next });
+  },
   setLoopEnabled: (enabled) => set({ loopEnabled: enabled }),
   setZoomMode: (mode) => set({ zoomMode: mode }),
   setManualZoomPercent: (percent) =>
