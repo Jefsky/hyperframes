@@ -21,7 +21,7 @@
     },
     "packages/cli": {
       "name": "@hyperframes/cli",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "bin": {
         "hyperframes": "./dist/cli.js",
       },
@@ -59,12 +59,12 @@
         "vitest": "^3.2.4",
       },
       "optionalDependencies": {
-        "@google/genai": "^1.50.1",
+        "@google/genai": "^1.52.0",
       },
     },
     "packages/core": {
       "name": "@hyperframes/core",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "dependencies": {
         "@chenglou/pretext": "^0.0.5",
         "postcss": "^8.5.8",
@@ -91,7 +91,7 @@
     },
     "packages/engine": {
       "name": "@hyperframes/engine",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "dependencies": {
         "@hono/node-server": "^1.13.0",
         "@hyperframes/core": "workspace:^",
@@ -109,7 +109,7 @@
     },
     "packages/player": {
       "name": "@hyperframes/player",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "devDependencies": {
         "@types/bun": "^1.1.0",
         "gsap": "^3.12.5",
@@ -121,7 +121,7 @@
     },
     "packages/producer": {
       "name": "@hyperframes/producer",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "dependencies": {
         "@fontsource/archivo-black": "^5.2.8",
         "@fontsource/eb-garamond": "^5.2.7",
@@ -160,7 +160,7 @@
     },
     "packages/shader-transitions": {
       "name": "@hyperframes/shader-transitions",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "dependencies": {
         "html2canvas": "^1.4.1",
       },
@@ -172,7 +172,7 @@
     },
     "packages/studio": {
       "name": "@hyperframes/studio",
-      "version": "0.6.0-alpha.12",
+      "version": "0.6.0",
       "dependencies": {
         "@codemirror/autocomplete": "^6.20.1",
         "@codemirror/commands": "^6.10.3",
