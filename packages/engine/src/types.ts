@@ -120,6 +120,20 @@ export interface CaptureOptions {
    * `--variables-file <path>`. Must be a JSON-serializable plain object.
    */
   variables?: Record<string, unknown>;
+  /**
+   * When `true`, the BeginFrame warmup loop driven during page navigation
+   * runs exactly `LOCKED_WARMUP_TICKS` (60) iterations regardless of how
+   * long the page load takes, making `session.beginFrameTimeTicks`
+   * deterministic across machines with different page-load latencies.
+   *
+   * Default `false`: wall-clock-bounded driver — ticks until page-readiness
+   * completes, accumulating whatever count the host CPU manages. Preserves
+   * the in-process renderer's BeginFrame timing baselines.
+   *
+   * Has no effect outside BeginFrame mode (screenshot capture never runs a
+   * warmup loop).
+   */
+  lockWarmupTicks?: boolean;
 }
 
 export interface CaptureVideoMetadataHint {
