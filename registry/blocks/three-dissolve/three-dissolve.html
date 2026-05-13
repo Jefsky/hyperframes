@@ -58,9 +58,11 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/postprocessing/BokehPass.js"></script>
     <script>
       let resolveReady;
-      window.__tailwindReady = new Promise((resolve) => {
+      var loadPromise = new Promise((resolve) => {
         resolveReady = resolve;
       });
+      var hangTimer = new Promise((resolve) => setTimeout(resolve, 15000));
+      window.__tailwindReady = Promise.race([loadPromise, hangTimer]);
 
       (function () {
         function parseVars() {
@@ -72,7 +74,9 @@
           for (const d of defs) defaults[d.id] = d.default;
           var byComp = window.__hfVariablesByComp;
           if (byComp && byComp[compId]) return Object.assign(defaults, byComp[compId]);
-          var el = document.querySelector('[data-composition-id="' + compId + '"][data-variable-values]');
+          var el = document.querySelector(
+            '[data-composition-id="' + compId + '"][data-variable-values]',
+          );
           if (el) {
             try {
               return Object.assign(defaults, JSON.parse(el.getAttribute("data-variable-values")));
@@ -93,7 +97,11 @@
 
         function hexToVec3(hex) {
           const n = parseInt(hex.replace("#", ""), 16);
-          return new THREE.Vector3(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+          return new THREE.Vector3(
+            ((n >> 16) & 255) / 255,
+            ((n >> 8) & 255) / 255,
+            (n & 255) / 255,
+          );
         }
 
         try {
@@ -120,7 +128,9 @@
           const DISSOLVE_END = Number(vars.dissolveEnd) || 7.1;
           const PARTICLE_COLOR_VEC = hexToVec3(vars.particleColor || "#1a7aff");
           const BG_COLOR = vars.bgColor || "#05070d";
-          const MODEL_URL = vars.modelUrl || "https://static.heygen.ai/hyperframes-oss/registry/blocks/three-dissolve/scene.gltf";
+          const MODEL_URL =
+            vars.modelUrl ||
+            "https://static.heygen.ai/hyperframes-oss/registry/blocks/three-dissolve/scene.gltf";
 
           const container = document.querySelector('[data-composition-id="three-dissolve"]');
           const bgGradient = `radial-gradient(circle at 50% 42%, ${BG_COLOR}44 0%, ${BG_COLOR}cc 44%, ${BG_COLOR} 100%)`;
@@ -458,7 +468,8 @@
               box.getCenter(bCenter);
               modelMesh.position.sub(bCenter);
               var maxDim = Math.max(bSize.x, bSize.y, bSize.z);
-              var visibleHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+              var visibleHeight =
+                2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
               var targetSize = visibleHeight * 0.32;
               root.scale.setScalar(maxDim > 0 ? targetSize / maxDim : 1);
               modelMesh.updateMatrixWorld(true);
