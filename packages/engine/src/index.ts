@@ -156,6 +156,13 @@ export {
 export { quantizeTimeToFrame, MEDIA_VISUAL_STYLE_PROPERTIES } from "@hyperframes/core";
 
 export {
+  assertSwiftShader,
+  readWebGlVendorInfo,
+  SwiftShaderAssertionError,
+  BROWSER_GPU_NOT_SOFTWARE,
+} from "./utils/assertSwiftShader.js";
+
+export {
   extractMediaMetadata,
   extractVideoMetadata,
   extractAudioMetadata,
