@@ -90,12 +90,22 @@ export interface FreezePlanResult {
 }
 
 /**
+ * Re-export the runtime-env snapshot helper for backward compatibility with
+ * earlier imports from `./freezePlan`. The implementation lives in
+ * `../runtimeEnvSnapshot.ts` — chunk workers re-apply the snapshot during
+ * boot, so it needs to be importable without dragging in the freeze pipeline.
+ */
+export { snapshotRuntimeEnv, RUNTIME_ENV_PREFIXES } from "../runtimeEnvSnapshot.js";
+
+/**
  * Freeze a plan directory: write `meta/*.json` + top-level `plan.json`, then
  * compute `planHash` over the canonicalized contents.
  *
  * Skeleton — body lands when the distributed-render primitives compose the
- * stage functions.
+ * stage functions. The body will resolve `input.encoder.runtimeEnv ||=
+ * snapshotRuntimeEnv()` so callers can optionally pre-populate the field,
+ * with the live env as the default.
  */
 export async function freezePlan(_input: FreezePlanInput): Promise<FreezePlanResult> {
-  throw new Error("freezePlan is not implemented yet — see DISTRIBUTED-RENDERING-PLAN.md §11.");
+  throw new Error("freezePlan is not implemented yet.");
 }
