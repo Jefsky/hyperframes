@@ -484,11 +484,13 @@
               );
               root.add(particlePoints);
               renderAt(lastRenderedTime);
+              window.__hf = { duration: DURATION, seek: renderAt };
               resolveReady();
             },
             undefined,
             (error) => {
               console.error("GLTF load failed:", error);
+              window.__hf = { duration: DURATION, seek: renderAt };
               resolveReady();
             },
           );
